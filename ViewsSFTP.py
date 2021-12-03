@@ -148,7 +148,6 @@ class ViewsSFTP:
             f.write(self.df.to_csv(index=False))
 
     def write_parquet(self, file_name, path='./data/', overwrite=False):
-
         store_path = self.__path_maker(file_name, path, 'parquet')
         print(store_path)
 
@@ -156,6 +155,7 @@ class ViewsSFTP:
             raise FileExistsError('File exists on server, set fail_on_exists to false.')
 
         with self.connection.open(store_path, "w") as f:
+            # Pyarrow is needed for writing to remote file-likes
             f.write(self.df.to_parquet(index=False, engine='pyarrow'))
 
     def read_csv(self, file_name, path='./data/'):
@@ -174,7 +174,8 @@ class ViewsSFTP:
     def read_parquet(self, file_name, path='./data/'):
         store_path = self.__path_maker(file_name, path, 'parquet')
         with self.connection.open(store_path, "r+b") as f:
-            self.df = pd.read_parquet(store_path, engine='pyarrow')
+            # Pyarrow is needed for reading from remote file-likes
+            self.df = pd.read_parquet(f, engine='pyarrow')
             return self.df
 
     def delete_file(self, file_name, path='/data/'):

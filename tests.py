@@ -17,4 +17,7 @@ writer.write_parquet(file_name='test2.parquet', overwrite=True)
 df = reader.read_csv(file_name='test2.csv')
 assert df.loc[1]['cat'] == 29
 
+df = reader.read_parquet(file_name='test2.parquet')
+assert df.loc[1]['cat'] == 29
+
 reader.mkdir('/data/test_data2')
