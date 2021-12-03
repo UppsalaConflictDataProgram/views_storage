@@ -4,6 +4,7 @@ import pandas as pd
 import sqlalchemy as sa
 from tempfile import NamedTemporaryFile
 import paramiko
+from stat import S_ISDIR, S_ISREG
 
 paramiko.util.log_to_file("paramiko.log")
 
@@ -14,6 +15,7 @@ class ViewsSFTP:
         self.key_store = f'postgresql://{self.views_name}@{key_store}:5432/pred3_certs'
         self.key = self.__fetch_paramiko_key()
         self.connection = self.__connect()
+        self.connection.chdir(None)
 
     @staticmethod
     def __fetch_views_user():
@@ -110,6 +112,20 @@ class ViewsSFTP:
         except IOError:
             self.connection.mkdir(path)
             self.connection.chdir(path)
+        self.connection.chdir(None)
+
+
+
+    def ls(self, path):
+        folders = []
+        files = []
+        for entry in self.connection.listdir_attr(path):
+            mode = entry.st_mode
+            if S_ISDIR(mode):
+                folders.append(entry.filename)
+            elif S_ISREG(mode):
+                files.append(entry.filename)
+        return {'folders': folders, 'files': files}
 
     @staticmethod
     def __file_name_fixer(file_name, extension='csv'):
@@ -139,7 +155,7 @@ class ViewsSFTP:
         """
 
         store_path = self.__path_maker(file_name, path, 'csv')
-        print(store_path)
+        #print(store_path)
 
         if self.file_exists(store_path) and not overwrite:
             raise FileExistsError('File exists on server, set fail_on_exists to false.')
@@ -149,7 +165,7 @@ class ViewsSFTP:
 
     def write_parquet(self, file_name, path='./data/', overwrite=False):
         store_path = self.__path_maker(file_name, path, 'parquet')
-        print(store_path)
+        #print(store_path)
 
         if self.file_exists(store_path) and not overwrite:
             raise FileExistsError('File exists on server, set fail_on_exists to false.')
@@ -167,6 +183,7 @@ class ViewsSFTP:
         :return:
         """
         store_path = self.__path_maker(file_name, path, 'csv')
+        #print(store_path)
         with self.connection.open(store_path, "r+b") as f:
             self.df = pd.read_csv(f)
             return self.df
@@ -183,7 +200,3 @@ class ViewsSFTP:
         Low level deletion is not implemented and will never be for file safety reasons.
         Mark it for deletion using the register. Garbage collection will take care of it.
         """)
-
-
-
-
