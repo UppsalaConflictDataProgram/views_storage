@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "views_sftp"
+version = "0.1.0"
+description = ""
+authors = ["Mihai Croicu <mihai.croicu@pcr.uu.se>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+SQLAlchemy = "^1.4.29"
+pandas = "^1.3.5"
+environs = "^9.3.5"
+paramiko = "^2.9.1"
+
+[tool.poetry.dev-dependencies]
+jedi = "^0.18.1"
+pylint = "^2.12.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
