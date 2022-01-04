@@ -1,8 +1,11 @@
-import pandas
-import pandas as pd
-import numpy as np
-from ViewsSFTP import ViewsSFTP
+from views_storage import SftpDataStorage
 
+storage = SftpDataStorage("janus",dbname = "pred3_certs")
+d = storage.read("data/test/test2/test2.parquet")
+storage.write("data/test/test2/test2_2.parquet", d, overwrite = True)
+print(storage.list("data/test/test2"))
+
+"""
 reader = ViewsSFTP()
 
 reader.mkdir('/data/test/test2')
@@ -26,3 +29,4 @@ assert df.loc[1]['cat'] == 29
 test_list = reader.ls(path='./data/test/')
 assert 'test2' in test_list['folders']
 assert 'read_test.csv' in test_list['files']
+"""
