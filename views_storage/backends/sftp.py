@@ -1,6 +1,8 @@
+from typing import Optional
 from stat import S_ISDIR, S_ISREG
 import os
 from tempfile import NamedTemporaryFile
+from cryptography import x509
 import paramiko
 import psycopg2
 import sqlalchemy as sa
@@ -9,14 +11,53 @@ from . import storage_backend
 
 
 class Sftp(storage_backend.StorageBackend):
-    def __init__(self, user: str, host: str, port: int, dbname: str, sslmode: str, folder: str = "."):
+    """
+    Sftp
+    ====
+
+    parameters:
+        key_db_user (str)
+        key_db_host (str)
+        key_db_dbname (str)
+        host (str)
+        port (int)
+        user (Optional[str]) = Read from db ssl cert if not provided.
+        key_db_sslmode (str) = "require"
+        key_db_port (int) = 5432
+        key_db_password (Optional[str])
+        folder (str):  Root folder on sftp server = "."
+
+    Backend that stores and retrieves files via SFTP. Authentication is done
+    via a database, which requires you to have a valid client certificate
+    installed at ~/.postgresql.
+    """
+
+    def __init__(self,
+            host: str,
+            port: int,
+            user: str,
+            key_db_host: str,
+            key_db_dbname: str,
+            key_db_user: Optional[str] = None,
+            key_db_sslmode: str = "require",
+            key_db_password: Optional[str] = None,
+            key_db_port: int = 5432,
+            folder: str = "."):
+
         self._keystore_connection_string = (
-            f"host={host} "
-            f"port={port} "
-            f"dbname={dbname} "
-            f"user={user} "
-            f"sslmode={sslmode}"
+            f"host={key_db_host} "
+            f"port={key_db_port} "
+            f"dbname={key_db_dbname} "
+            f"user={key_db_user if key_db_user else self.get_cert_username()} "
+            f"sslmode={key_db_sslmode}"
         )
+
+        if key_db_password:
+            self._keystore_connection_string += f" password={key_db_password}"
+
+        self._sftp_host = host
+        self._sftp_port = port
+        self._sftp_user = user
 
         self.key = self._fetch_paramiko_key()
         self.connection = self._connect()
@@ -24,16 +65,47 @@ class Sftp(storage_backend.StorageBackend):
         self._folder = folder
 
     def store(self, key: str, value: bytes) -> None:
+        """
+        store
+        =====
+
+        parameters:
+            key (str)
+            value (bytes)
+
+        Store file in remote folder, at path specified by "key".
+        """
         path = self._path(key)
         with self.connection.open(path, "wb") as f:
             f.write(value)
 
     def retrieve(self, key: str) -> bytes:
+        """
+        retrieve
+        ========
+
+        paramters:
+            key (str)
+
+        returns:
+            bytes
+
+        Retrieve contents of file at path specified by "key".
+        """
         path = self._path(key)
         with self.connection.open(path, "rb") as f:
             return f.read()
 
     def exists(self, key: str) -> bool:
+        """
+        exists
+        ======
+
+        parameters:
+            key (str)
+
+        Check for existence of file at "key".
+        """
         key = self._path(key)
         try:
             _ = self.connection.stat(key)
@@ -41,11 +113,23 @@ class Sftp(storage_backend.StorageBackend):
         except IOError:
             return False
 
-    def list(self, path: str = ".") -> models.Listing:
+    def list(self, key: str = ".") -> models.Listing:
+        """
+        list
+        ====
+
+        parameters:
+            path (str)
+
+        returns:
+            views_storage.models.Listing
+
+        List contents of folder at "key"
+        """
         folders = []
         files = []
 
-        for entry in self.connection.listdir_attr(self._path(path)):
+        for entry in self.connection.listdir_attr(self._path(key)):
             mode = entry.st_mode
             if S_ISDIR(mode):
                 folders.append(entry.filename)
@@ -55,6 +139,12 @@ class Sftp(storage_backend.StorageBackend):
         return models.Listing(folders=folders, files=files)
 
     def keys(self):
+        """
+        keys
+        ====
+
+        Show available keys (at ".")
+        """
         return self.list()
 
     def _db_connect(self):
@@ -84,15 +174,13 @@ class Sftp(storage_backend.StorageBackend):
 
         query = sa.select([cert_table.c["sftp_cert"]])
 
-        print(str(query))
-
         with self._db_connect() as con:
             c = con.cursor()
             c.execute(str(query))
             cert,*_ = c.fetchone()
 
         with NamedTemporaryFile(dir=".", mode="w") as x:
-            x.write(cert)  # .encode())
+            x.write(cert)
             x.seek(0)
             key = paramiko.Ed25519Key.from_private_key_file(x.name, password=None)
             return key
@@ -109,8 +197,8 @@ class Sftp(storage_backend.StorageBackend):
         The user and key are the dedicated user and key generated above.
         DO NOT use your views user share!
         """
-        t = paramiko.Transport(("hermes", 22222))
-        t.connect(hostkey=None, pkey=self.key, username="predictions")
+        t = paramiko.Transport((self._sftp_host, self._sftp_port))
+        t.connect(hostkey=None, pkey=self.key, username=self._sftp_user)
         return paramiko.SFTPClient.from_transport(t)
 
     @staticmethod
@@ -138,3 +226,26 @@ class Sftp(storage_backend.StorageBackend):
             self.connection.close()
         except TypeError:
             pass
+
+    @staticmethod
+    def get_cert_username():
+        cert_file_path = os.path.expanduser("~/.postgresql/postgresql.crt")
+        try:
+            assert os.path.exists(cert_file_path)
+        except AssertionError:
+            return None
+
+        with open(cert_file_path) as f:
+            cert = x509.load_pem_x509_certificate(f.read().encode())
+
+        common_name = cert.subject.rfc4514_string().split(",")
+        try:
+            # Extract the content of the CN field from the x509 formatted string.
+            views_user_name = [
+                i.split("=")[1] for i in common_name if i.split("=")[0] == "CN"
+            ][0]
+        except IndexError:
+            raise ConnectionError(
+                "Something is wrong with the ViEWS Certificate. Contact ViEWS to obtain authentication!"
+            )
+        return views_user_name

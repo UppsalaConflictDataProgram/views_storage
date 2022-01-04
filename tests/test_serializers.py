@@ -1,4 +1,3 @@
-
 import unittest
 import string
 import numpy as np
@@ -11,6 +10,11 @@ class TestSerializers(unittest.TestCase):
         assert_frame_equal(dataframe, ser.deserialize(ser.serialize(dataframe)))
 
     def test_serializers_identity(self):
+        """
+        This tests whether the listed serializers return an identical dataframe
+        when the DF is serialized and un-serialized.
+        """
+
         df = pd.DataFrame(np.random.rand(10,10), columns = list(string.ascii_lowercase[:10]))
         for ser in csv.Csv, parquet.Parquet, pickle.Pickle:
             self.assert_serializer_identity(df, ser())

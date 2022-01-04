@@ -1,4 +1,7 @@
-
+"""
+These simple tests are just asserting that the key value store class works as
+intended, with two different mock backends.
+"""
 import unittest
 import tempfile
 from views_storage.key_value_store import KeyValueStore

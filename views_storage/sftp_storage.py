@@ -49,25 +49,3 @@ class SftpObjectStorage(SftpStorage):
         self.serializer = serializers.Pickle()
         super().__init__(host, port, dbname, sslmode = sslmode, user = user, folder = folder)
 
-
-def get_cert_username():
-    cert_file_path = os.path.expanduser("~/.postgresql/postgresql.crt")
-    try:
-        assert os.path.exists(cert_file_path)
-    except AssertionError:
-        return None
-
-    with open(cert_file_path) as f:
-        cert = x509.load_pem_x509_certificate(f.read().encode())
-
-    common_name = cert.subject.rfc4514_string().split(",")
-    try:
-        # Extract the content of the CN field from the x509 formatted string.
-        views_user_name = [
-            i.split("=")[1] for i in common_name if i.split("=")[0] == "CN"
-        ][0]
-    except IndexError:
-        raise ConnectionError(
-            "Something is wrong with the ViEWS Certificate. Contact ViEWS to obtain authentication!"
-        )
-    return views_user_name

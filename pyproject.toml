@@ -2,7 +2,7 @@
 name = "views_storage"
 version = "0.1.0"
 description = ""
-authors = ["Mihai Croicu <mihai.croicu@pcr.uu.se>", "Peder Landsverk <pglandsverk@gmail.com>]
+authors = ["Mihai Croicu <mihai.croicu@pcr.uu.se>", "Peder Landsverk <pglandsverk@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
@@ -14,10 +14,12 @@ paramiko = "^2.9.1"
 pydantic = "^1.9.0"
 psycopg2 = "^2.9.3"
 pyarrow = "^6.0.1"
+cryptography = "^36.0.1"
 
 [tool.poetry.dev-dependencies]
 jedi = "^0.18.1"
 pylint = "^2.12.2"
+docker = "^5.0.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

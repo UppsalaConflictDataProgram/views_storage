@@ -6,21 +6,23 @@ from .backends import storage_backend
 T = TypeVar("T")
 
 
-class KeyValueStore(ABC, Generic[T]):
+class KeyValueStore(Generic[T]):
     """
     KeyValueStore
     =============
 
     Abstract class for a key-value store combining a storage backend with a
-    serializer-deserializer,
+    serializer-deserializer. Generalizes key-value storage across multiple
+    backends.
 
+    Subclasses should override __init__, setting the self.backend and
+    self.serializer values to subclasses of storage_backend.StorageBackend and
+    serializer.Serializer respectively.
     """
 
-    backend: storage_backend.StorageBackend
-    serializer: serializer.Serializer
-
-    def __init__(self):
-        pass
+    def __init__(self, backend: storage_backend.StorageBackend, serializer: serializer.Serializer):
+        self.backend = backend
+        self.serializer = serializer
 
     def exists(self, key: str) -> bool:
         return self.backend.exists(key)
@@ -33,3 +35,6 @@ class KeyValueStore(ABC, Generic[T]):
 
     def read(self, key: str) -> T:
         return self.serializer.deserialize(self.backend.retrieve(key))
+
+    def list(self):
+        return self.backend.keys()
