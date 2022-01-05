@@ -1,9 +1,11 @@
 [tool.poetry]
 name = "views_storage"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["Mihai Croicu <mihai.croicu@pcr.uu.se>", "Peder Landsverk <pglandsverk@gmail.com>"]
 license = "MIT"
+description = "Storage driver used throughout views 3."
+homepage = "https://github.com/uppsalaconflictdataprogram/views_storage"
 
 [tool.poetry.dependencies]
 python = "^3.8"
