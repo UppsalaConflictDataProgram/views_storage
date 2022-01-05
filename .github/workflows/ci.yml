@@ -16,10 +16,10 @@ jobs:
 
          - name: "Dependencies"
            run: |
-              pip install cython==3.0.0a9 numpy==1.21.2 setuptools wheel twine
+              pip install poetry twine 
 
          - name: "Build"
-           run: python setup.py sdist 
+           run: poetry build 
 
          - name: "Publish"
            run: |
