@@ -16,20 +16,23 @@ class Sftp(storage_backend.StorageBackend):
     ====
 
     parameters:
-        key_db_user (str)
-        key_db_host (str)
-        key_db_dbname (str)
         host (str)
         port (int)
-        user (Optional[str]) = Read from db ssl cert if not provided.
+        user (Optional[str])
+        key_db_host (str)
+        key_db_dbname (str)
+        key_db_user (Optional[str]): Inferred if not provided = None
         key_db_sslmode (str) = "require"
+        key_db_password (Optional[str]): Cert auth. if not provided 
         key_db_port (int) = 5432
-        key_db_password (Optional[str])
         folder (str):  Root folder on sftp server = "."
 
     Backend that stores and retrieves files via SFTP. Authentication is done
     via a database, which requires you to have a valid client certificate
     installed at ~/.postgresql.
+
+    If key database username is not provided, the username is attempted
+    inferred from the database certificate at ~/.postgresql/postgresql.crt
     """
 
     def __init__(self,
