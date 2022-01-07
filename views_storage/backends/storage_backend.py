@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 
-
 class StorageBackend(ABC):
     @abstractmethod
     def store(self, key: str, value: bytes) -> None:
