@@ -59,10 +59,11 @@ class TestSftp(unittest.TestCase):
                         key_db_password = "pleaselogmein",
                         key_db_port = 2345,
                         key_db_sslmode = "allow",
+                        folder = "upload/my/fantastic/data"
                     ),
                 serializer = pickle.Pickle()
                 )
 
-        store.write("upload/yee", "haw")
-        self.assertEqual(store.read("upload/yee"), "haw")
+        store.write("yee", "haw")
+        self.assertEqual(store.read("yee"), "haw")
 

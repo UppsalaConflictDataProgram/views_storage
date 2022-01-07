@@ -10,25 +10,13 @@ from views_storage.serializers import pickle
 
 class TestKeyValueStore(unittest.TestCase):
     def test_key_value_store_dict(self):
-        class TestKvDict(KeyValueStore):
-            def __init__(self):
-                self.backend = dictionary.DictBackend()
-                self.serializer = pickle.Pickle()
-                super().__init__()
-
-        kv = TestKvDict()
+        kv = KeyValueStore(backend = dictionary.DictBackend(), serializer = pickle.Pickle())
         kv.write("foo","bar")
         self.assertEqual(kv.read("foo"), "bar")
 
 
     def test_key_value_store_local(self):
         with tempfile.TemporaryDirectory() as tmp:
-            class TestKvLocal(KeyValueStore):
-                def __init__(self):
-                    self.backend = local.Local(tmp)
-                    self.serializer = pickle.Pickle()
-                    super().__init__()
-
-            kv = TestKvLocal()
+            kv = KeyValueStore(backend = local.Local(tmp), serializer = pickle.Pickle())
             kv.write("foo","bar")
             self.assertEqual(kv.read("foo"), "bar")

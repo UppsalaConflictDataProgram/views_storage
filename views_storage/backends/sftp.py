@@ -23,7 +23,7 @@ class Sftp(storage_backend.StorageBackend):
         key_db_dbname (str)
         key_db_user (Optional[str]): Inferred if not provided = None
         key_db_sslmode (str) = "require"
-        key_db_password (Optional[str]): Cert auth. if not provided 
+        key_db_password (Optional[str]): Cert auth. if not provided
         key_db_port (int) = 5432
         folder (str):  Root folder on sftp server = "."
 
@@ -58,14 +58,16 @@ class Sftp(storage_backend.StorageBackend):
         if key_db_password:
             self._keystore_connection_string += f" password={key_db_password}"
 
+
         self._sftp_host = host
         self._sftp_port = port
         self._sftp_user = user
 
-        self.key = self._fetch_paramiko_key()
+        self.key        = self._fetch_paramiko_key()
         self.connection = self._connect()
-        self.connection.chdir(None)
-        self._folder = folder
+        self._folder    = os.path.join("",folder)
+
+        self.setup_dir(self._folder)
 
     def store(self, key: str, value: bytes) -> None:
         """
@@ -252,3 +254,42 @@ class Sftp(storage_backend.StorageBackend):
                 "Something is wrong with the ViEWS Certificate. Contact ViEWS to obtain authentication!"
             )
         return views_user_name
+
+    def _folder_exists(self, path):
+        """
+        exists
+        ======
+       
+        parameters:
+            path(str)
+
+        Checks if a folder exists on the server.
+        """
+
+        try:
+            prev = self.connection.getcwd()
+            self.connection.chdir(path)
+            self.connection.chdir(prev)
+            return True
+        except IOError:
+            return False
+
+    def setup_dir(self, dir: str) -> None:
+        """
+        _mkdir
+        ======
+
+        parameters:
+            path (str)
+
+        Used to initialize the target folder on the remote host.
+        """
+        existing = ""
+        for path_element in dir.split("/"):
+            to_make = os.path.join(existing, path_element)
+            print(f"To make: {to_make}")
+
+            if not self._folder_exists(to_make):
+                self.connection.mkdir(to_make)
+
+            existing = to_make
