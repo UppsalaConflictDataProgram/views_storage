@@ -287,7 +287,6 @@ class Sftp(storage_backend.StorageBackend):
         existing = ""
         for path_element in dir.split("/"):
             to_make = os.path.join(existing, path_element)
-            print(f"To make: {to_make}")
 
             if not self._folder_exists(to_make):
                 self.connection.mkdir(to_make)
