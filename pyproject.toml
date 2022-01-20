@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "views_storage"
-version = "0.3.1"
+version = "0.4.0"
 authors = ["Mihai Croicu <mihai.croicu@pcr.uu.se>", "Peder Landsverk <pglandsverk@gmail.com>"]
 license = "MIT"
 description = "Storage driver used throughout views 3."
@@ -16,6 +16,7 @@ pydantic = "^1.9.0"
 psycopg2 = "^2.9.3"
 pyarrow = "^6.0.1"
 cryptography = "^36.0.1"
+azure-storage-blob = "^12.9.0"
 
 [tool.poetry.dev-dependencies]
 jedi = "^0.18.1"
