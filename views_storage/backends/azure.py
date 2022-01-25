@@ -3,7 +3,7 @@ from typing import List
 from azure.storage.blob import BlobServiceClient
 from . import storage_backend
 
-class AzureBlobStorageBackend(storage_backend.StorageBackend):
+class AzureBlobStorageBackend(storage_backend.StorageBackend[str, bytes]):
     def __init__(self, connection_string: str, container_name: str):
         self._container_client = (BlobServiceClient
                 .from_connection_string(connection_string)

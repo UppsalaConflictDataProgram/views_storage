@@ -2,7 +2,7 @@
 from . import storage_backend
 
 
-class DictBackend(storage_backend.StorageBackend):
+class DictBackend(storage_backend.StorageBackend[str, bytes]):
     def __init__(self):
         self._dict = {}
         super().__init__()

@@ -10,7 +10,7 @@ from .. import models
 from . import storage_backend
 
 
-class Sftp(storage_backend.StorageBackend):
+class Sftp(storage_backend.StorageBackend[str, bytes]):
     """
     Sftp
     ====

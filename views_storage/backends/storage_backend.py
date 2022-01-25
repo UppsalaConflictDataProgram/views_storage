@@ -1,23 +1,26 @@
 from abc import ABC, abstractmethod
+from typing import Generic, TypeVar
 
+T = TypeVar("T")
+U = TypeVar("U")
 
-class StorageBackend(ABC):
+class StorageBackend(ABC, Generic[T, U]):
     @abstractmethod
-    def store(self, key: str, value: bytes) -> None:
+    def store(self, key: T, value: U) -> None:
         raise NotImplementedError()
 
     @abstractmethod
-    def retrieve(self, key: str) -> bytes:
+    def retrieve(self, key: T) -> U:
         raise NotImplementedError()
 
     @abstractmethod
-    def exists(self, key: str) -> bool:
+    def exists(self, key: T) -> bool:
         """
         exists
         ===========
 
         parameters:
-            path (str): The path to a file on the server
+            path (str): Uhe path to a file on the server
 
         returns:
             bool: Whether file exists or not

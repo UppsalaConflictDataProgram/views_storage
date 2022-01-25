@@ -2,7 +2,7 @@
 import os
 from . import storage_backend
 
-class Local(storage_backend.StorageBackend):
+class Local(storage_backend.StorageBackend[str, bytes]):
 
     def store(self, key: str, value: bytes) -> None:
         with open(self._path(key), "wb") as f:
