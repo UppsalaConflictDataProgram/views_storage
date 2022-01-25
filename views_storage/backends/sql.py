@@ -1,16 +1,13 @@
 
-from typing import Union, Dict, List, Optional
+from typing import Optional, Union
 import sqlalchemy as sa
 from sqlalchemy.engine import Engine
+from views_storage import types
 from . import storage_backend
 
 KeyType = Union[str, int]
-JsonSerializable = Union[
-        Dict["JsonSerializable","JsonSerializable"],
-        List["JsonSerializable"],
-        str, int, float, bool, None]
 
-class Sql(storage_backend.StorageBackend[KeyType, JsonSerializable]):
+class Sql(storage_backend.StorageBackend[KeyType, types.JsonSerializable]):
 
     def __init__(self, engine: Engine, table_name: str, schema: Optional[str] = None):
         self._engine = engine
@@ -27,19 +24,19 @@ class Sql(storage_backend.StorageBackend[KeyType, JsonSerializable]):
     def fields(self):
         return [(c.name, c.type) for c in self._table.columns]
 
-    def store(self, key: KeyType, value: JsonSerializable) -> None:
+    def store(self, key: KeyType, value: types.JsonSerializable) -> None:
         with self._engine.connect() as con:
             values = {self._primary_key.name: key, **value}
             query = self._table.insert().values(**values)
             con.execute(query)
 
-    def retrieve(self, key: KeyType) -> JsonSerializable:
+    def retrieve(self, key: KeyType) -> types.JsonSerializable:
         with self._engine.connect() as con:
             query = self._table.select().where(self._primary_key == key)
             res = con.execute(query).fetchone()
             if res is not None:
                 data = dict(res)
-                del(data[self._primary_key.name])
+                del data[self._primary_key.name]
                 return data
             else:
                 return None
