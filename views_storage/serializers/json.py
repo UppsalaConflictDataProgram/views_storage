@@ -7,7 +7,7 @@ JsonSerializable = Union[
         List["JsonSerializable"],
         str, int, float, bool, None]
 
-class Json(serializer.Serializer[JsonSerializable]):
+class Json(serializer.Serializer[JsonSerializable, bytes]):
 
     def serialize(self, obj: JsonSerializable):
         return json.dumps(obj).encode()

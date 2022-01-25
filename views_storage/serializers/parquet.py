@@ -4,7 +4,7 @@ import pandas as pd
 from . import serializer
 
 
-class Parquet(serializer.Serializer[pd.DataFrame]):
+class Parquet(serializer.Serializer[pd.DataFrame, bytes]):
     def serialize(self, obj: pd.DataFrame) -> bytes:
         return obj.to_parquet(index=True, engine="pyarrow")
 

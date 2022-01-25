@@ -4,7 +4,7 @@ import pandas as pd
 from . import serializer
 
 
-class Csv(serializer.Serializer[pd.DataFrame]):
+class Csv(serializer.Serializer[pd.DataFrame, bytes]):
     def serialize(self, obj: pd.DataFrame) -> bytes:
         return obj.to_csv(index=False).encode()
 

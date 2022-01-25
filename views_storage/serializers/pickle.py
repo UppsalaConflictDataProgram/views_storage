@@ -4,7 +4,7 @@ import lz4.frame
 from . import serializer
 
 
-class Pickle(serializer.Serializer[Any]):
+class Pickle(serializer.Serializer[Any, bytes]):
     def __init__(self, compression = True):
         """
         Pickle
