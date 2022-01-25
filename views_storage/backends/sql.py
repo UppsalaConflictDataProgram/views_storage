@@ -1,5 +1,5 @@
 
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Optional
 import sqlalchemy as sa
 from sqlalchemy.engine import Engine
 from . import storage_backend
@@ -10,11 +10,12 @@ JsonSerializable = Union[
         List["JsonSerializable"],
         str, int, float, bool, None]
 
-class PostgresJsonBackend(storage_backend.StorageBackend[KeyType, JsonSerializable]):
+class Sql(storage_backend.StorageBackend[KeyType, JsonSerializable]):
 
-    def __init__(self, engine: Engine, table_name: str, schema: str = "public"):
+    def __init__(self, engine: Engine, table_name: str, schema: Optional[str] = None):
         self._engine = engine
-        self._metadata = sa.MetaData(schema = schema)
+        md_args = {"schema": schema} if schema is not None else {}
+        self._metadata = sa.MetaData(**md_args)
         self._table = sa.Table(table_name, self._metadata, autoload_with = self._engine)
         self._assert_one_pk()
 
@@ -36,7 +37,12 @@ class PostgresJsonBackend(storage_backend.StorageBackend[KeyType, JsonSerializab
         with self._engine.connect() as con:
             query = self._table.select().where(self._primary_key == key)
             res = con.execute(query).fetchone()
-            return dict(res) if res is not None else None
+            if res is not None:
+                data = dict(res)
+                del(data[self._primary_key.name])
+                return data
+            else:
+                return None
 
     def exists(self, key: KeyType) -> bool:
         return self.retrieve(key) is not None
