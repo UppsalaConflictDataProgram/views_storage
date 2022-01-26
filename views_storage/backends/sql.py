@@ -83,12 +83,16 @@ class Sql(storage_backend.StorageBackend[KeyType, Dict[str, types.JsonSerializab
                     f"(Available fields: {', '.join(names)})"
                     ))
             try:
-                data_sa_type = self._py_sa_type(type(data[key]))
-                assert isinstance(self._table.columns[key].type, data_sa_type)
+                data_sa_types = self._py_sa_type(type(data[key]))
+
+                right_type = False
+                for accepted_type in data_sa_types :
+                    right_type |= isinstance(self._table.columns[key].type, accepted_type)
+                assert right_type
             except AssertionError:
                 raise ValueError((
                     f"Provided data field {key} is of wrong type "
-                    f"(Got {data_sa_type}, expected {self._table.columns[key].type})"
+                    f"(Got {data_sa_types}, expected {self._table.columns[key].type})"
                     ))
 
     def _assert_one_pk(self):
@@ -100,10 +104,11 @@ class Sql(storage_backend.StorageBackend[KeyType, Dict[str, types.JsonSerializab
 
     def _py_sa_type(self, python_type):
         equivalent = {
-                int: sa.INTEGER,
-                str: sa.TEXT,
-                dict: sa.JSON,
-                list: sa.ARRAY
+                int: (sa.INTEGER, sa.FLOAT, sa.INT),
+                str: (sa.TEXT, sa.VARCHAR, sa.CHAR),
+                dict: (sa.JSON,),
+                list: (sa.ARRAY,),
+                bool: (sa.BOOLEAN,),
             }
 
         return equivalent[python_type]
