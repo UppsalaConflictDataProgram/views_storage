@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "views_storage"
-version = "1.1.0"
+version = "1.1.1"
 authors = ["Mihai Croicu <mihai.croicu@pcr.uu.se>", "Peder Landsverk <pglandsverk@gmail.com>"]
 license = "MIT"
 description = "Storage driver used throughout views 3."
