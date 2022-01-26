@@ -34,7 +34,12 @@ class KeyValueStore(Generic[T]):
         self.backend.store(key, self.serializer.serialize(value))
 
     def read(self, key: str) -> T:
-        return self.serializer.deserialize(self.backend.retrieve(key))
+        try:
+            raw = self.backend.retrieve(key)
+            assert raw is not None
+        except (KeyError, AssertionError):
+            raise KeyError(f"{key} does not exist")
+        return self.serializer.deserialize(raw)
 
     def list(self):
         return self.backend.keys()
