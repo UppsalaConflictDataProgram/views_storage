@@ -1,7 +1,7 @@
 from typing import List
-from pydantic import BaseModel
+#from pydantic import BaseModel
 
-class Listing(BaseModel):
+class Listing():
     """
     A directory listing, separating folders and files.
     """
